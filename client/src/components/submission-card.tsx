@@ -20,9 +20,10 @@ interface SubmissionCardProps {
   submission: SubmissionWithProjects;
   onStatusUpdate: (status: string, completed?: boolean) => void;
   onDownloadResume: () => void;
+  onViewDetails?: () => void;
 }
 
-export default function SubmissionCard({ submission, onStatusUpdate, onDownloadResume }: SubmissionCardProps) {
+export default function SubmissionCard({ submission, onStatusUpdate, onDownloadResume, onViewDetails }: SubmissionCardProps) {
   const [showActions, setShowActions] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -93,7 +94,7 @@ export default function SubmissionCard({ submission, onStatusUpdate, onDownloadR
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3 lg:ml-4">
-            <Button size="sm" className="btn-primary">
+            <Button size="sm" className="btn-primary" onClick={onViewDetails}>
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </Button>

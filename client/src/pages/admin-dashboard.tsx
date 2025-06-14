@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import SubmissionCard from "@/components/submission-card";
+import SubmissionDetails from "@/pages/submission-details";
 import { 
   Gauge, 
   Users, 
@@ -27,6 +28,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAdmin) {
@@ -141,6 +143,16 @@ export default function AdminDashboard() {
     );
   }
 
+  // Show submission details if one is selected
+  if (selectedSubmissionId) {
+    return (
+      <SubmissionDetails
+        submissionId={selectedSubmissionId}
+        onBack={() => setSelectedSubmissionId(null)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -175,7 +187,32 @@ export default function AdminDashboard() {
               <p className="text-gray-600">Manage client submissions and portfolio requests</p>
             </div>
             <div className="mt-4 sm:mt-0 flex gap-3">
-              <Button className="btn-accent">
+              <Button 
+                className="btn-accent"
+                onClick={() => {
+                  const exportData = {
+                    submissions: filteredSubmissions,
+                    exportedAt: new Date().toISOString(),
+                    totalSubmissions: stats.total,
+                    stats,
+                  };
+                  const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                    type: 'application/json',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `portfolio_submissions_${new Date().toISOString().split('T')[0]}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast({
+                    title: "Success",
+                    description: "Data exported successfully",
+                  });
+                }}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Export Data
               </Button>
@@ -295,6 +332,7 @@ export default function AdminDashboard() {
                   updateStatusMutation.mutate({ id: submission.id, status, completed })
                 }
                 onDownloadResume={() => handleDownloadResume(submission.resumeUrl)}
+                onViewDetails={() => setSelectedSubmissionId(submission.id)}
               />
             ))
           )}
