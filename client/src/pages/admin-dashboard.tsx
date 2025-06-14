@@ -22,25 +22,25 @@ import type { SubmissionWithProjects } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAdmin, isLoading } = useAdmin();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isAdmin) {
       toast({
         title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        description: "Please log in to access the admin dashboard.",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/admin/login";
       }, 500);
       return;
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isAdmin, isLoading, toast]);
 
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery<SubmissionWithProjects[]>({
     queryKey: ["/api/admin/submissions"],
@@ -73,14 +73,14 @@ export default function AdminDashboard() {
       });
     },
     onError: (error: Error) => {
-      if (isUnauthorizedError(error)) {
+      if (error.message.includes("401") || error.message.includes("Unauthorized")) {
         toast({
           title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          description: "Session expired. Please log in again.",
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/admin/login";
         }, 500);
         return;
       }
@@ -92,8 +92,17 @@ export default function AdminDashboard() {
     },
   });
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/status"] });
+      window.location.href = "/";
+    } catch (error) {
+      window.location.href = "/";
+    }
   };
 
   const handleDownloadResume = (filename: string) => {
@@ -121,7 +130,7 @@ export default function AdminDashboard() {
     inProgress: submissions.filter(s => s.status === "in-progress").length,
   };
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
