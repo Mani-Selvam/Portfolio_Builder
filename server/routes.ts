@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Simple admin login
-  app.post('/api/admin/login', (req, res) => {
+  app.post('/api/admin/login', (req: any, res) => {
     const { username, password } = req.body;
     
     // Simple credential check - in production, use proper password hashing
@@ -94,8 +94,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin logout
-  app.post('/api/admin/logout', (req, res) => {
-    req.session.destroy((err) => {
+  app.post('/api/admin/logout', (req: any, res) => {
+    req.session.destroy((err: any) => {
       if (err) {
         res.status(500).json({ message: "Logout failed" });
       } else {
@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check admin status
-  app.get('/api/admin/status', (req, res) => {
+  app.get('/api/admin/status', (req: any, res) => {
     if (req.session && req.session.isAdmin) {
       res.json({ isAdmin: true });
     } else {
@@ -135,10 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       const body = JSON.parse(req.body.data || '{}');
       
-      // Validate the submission data
-      const validatedData = submissionFormSchema.parse(body);
-      
-      // Handle file URLs
+      // Handle file URLs first
       let profilePhotoUrl = null;
       let resumeUrl = null;
       
@@ -152,15 +149,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Resume is required" });
       }
 
-      // Create submission
-      const submissionData = {
-        ...validatedData,
+      // Add file URLs to body data for validation
+      const dataWithFiles = {
+        ...body,
         profilePhotoUrl,
         resumeUrl,
       };
       
+      // Validate the complete submission data
+      const validatedData = submissionFormSchema.parse(dataWithFiles);
+      
       // Remove projects from submission data
-      const { projects: projectsData, ...submissionOnly } = submissionData;
+      const { projects: projectsData, ...submissionOnly } = validatedData;
       
       const newSubmission = await storage.createSubmission(submissionOnly);
       

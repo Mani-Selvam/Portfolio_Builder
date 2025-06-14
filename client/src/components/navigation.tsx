@@ -20,7 +20,7 @@ export default function Navigation() {
               Submit Portfolio
             </Button>
             <Button 
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/admin/login"}
               className="btn-primary"
             >
               Admin Login

@@ -20,7 +20,7 @@ export default function HeroSection() {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = "/api/login"}
+            onClick={() => window.location.href = "/admin/login"}
             className="text-lg px-8 py-3"
           >
             <Shield className="mr-2" />
