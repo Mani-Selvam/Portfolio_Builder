@@ -1,12 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertSubmissionSchema, insertProjectSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import session from "express-session";
+
+// Extend session type to include isAdmin
+declare module "express-session" {
+  interface SessionData {
+    isAdmin?: boolean;
+  }
+}
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -52,19 +59,57 @@ const submissionFormSchema = insertSubmissionSchema.extend({
   projects: z.array(insertProjectSchema).optional().default([]),
 });
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+// Simple admin authentication middleware
+const isAdminAuthenticated = (req: any, res: any, next: any) => {
+  if (req.session && req.session.isAdmin) {
+    return next();
+  }
+  return res.status(401).json({ message: "Unauthorized" });
+};
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Session configuration for admin login
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'admin-session-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }));
+
+  // Simple admin login
+  app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Simple credential check - in production, use proper password hashing
+    if (username === 'admin' && password === 'admin123') {
+      req.session.isAdmin = true;
+      res.json({ message: "Login successful" });
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
+    }
+  });
+
+  // Admin logout
+  app.post('/api/admin/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        res.status(500).json({ message: "Logout failed" });
+      } else {
+        res.json({ message: "Logout successful" });
+      }
+    });
+  });
+
+  // Check admin status
+  app.get('/api/admin/status', (req, res) => {
+    if (req.session && req.session.isAdmin) {
+      res.json({ isAdmin: true });
+    } else {
+      res.json({ isAdmin: false });
     }
   });
 
@@ -153,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes (protected)
-  app.get('/api/admin/submissions', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/submissions', isAdminAuthenticated, async (req, res) => {
     try {
       const submissions = await storage.getSubmissions();
       res.json(submissions);
@@ -163,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/submissions/:id', isAuthenticated, async (req, res) => {
+  app.get('/api/admin/submissions/:id', isAdminAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const submission = await storage.getSubmissionById(id);
@@ -179,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/admin/submissions/:id/status', isAuthenticated, async (req, res) => {
+  app.patch('/api/admin/submissions/:id/status', isAdminAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status, completed } = req.body;
@@ -198,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Download file route
-  app.get('/api/admin/download/:filename', isAuthenticated, (req, res) => {
+  app.get('/api/admin/download/:filename', isAdminAuthenticated, (req, res) => {
     const filename = req.params.filename;
     const filepath = path.join(uploadDir, filename);
     

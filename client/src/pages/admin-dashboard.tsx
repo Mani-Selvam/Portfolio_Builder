@@ -108,7 +108,7 @@ export default function AdminDashboard() {
       submission.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       submission.professionalTitle.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === "" || submission.status === statusFilter;
+    const matchesStatus = statusFilter === "" || statusFilter === "all" || submission.status === statusFilter;
     
     // Date filtering logic can be implemented here
     
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="pending">Pending Review</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
@@ -257,7 +257,7 @@ export default function AdminDashboard() {
                   <SelectValue placeholder="All Time" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Time</SelectItem>
+                  <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="week">This Week</SelectItem>
                   <SelectItem value="month">This Month</SelectItem>
