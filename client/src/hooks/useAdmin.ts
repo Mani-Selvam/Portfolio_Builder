@@ -1,13 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 
-export function useAdmin() {
-  const { data = { isAdmin: false }, isLoading } = useQuery({
-    queryKey: ["/api/admin/status"],
-    retry: false,
-  });
+type AdminStatus = {
+    isAdmin: boolean;
+};
 
-  return {
-    isAdmin: data.isAdmin || false,
-    isLoading,
-  };
+export function useAdmin() {
+    const { data = { isAdmin: false }, isLoading } = useQuery<AdminStatus>({
+        queryKey: ["/api/admin/status"],
+        retry: false,
+    });
+
+    return {
+        isAdmin: data.isAdmin || false,
+        isLoading,
+    };
 }
