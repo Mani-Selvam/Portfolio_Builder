@@ -42,7 +42,7 @@ export default function SubmissionDetails({ submissionId, onBack }: SubmissionDe
   }, [isAdmin, isLoading, toast, onBack]);
 
   const { data: submission, isLoading: submissionLoading } = useQuery<SubmissionWithProjects>({
-    queryKey: ["/api/admin/submissions", submissionId],
+    queryKey: [`/api/admin/submissions/${submissionId}`],
     retry: false,
     enabled: isAdmin,
   });
@@ -64,8 +64,11 @@ export default function SubmissionDetails({ submissionId, onBack }: SubmissionDe
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return 'N/A';
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -250,7 +253,11 @@ export default function SubmissionDetails({ submissionId, onBack }: SubmissionDe
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.open(project.githubUrl, '_blank')}
+                                onClick={() => {
+                                  if (project.githubUrl) {
+                                    window.open(project.githubUrl, '_blank');
+                                  }
+                                }}
                               >
                                 <Code className="mr-2 h-3 w-3" />
                                 GitHub
@@ -260,7 +267,11 @@ export default function SubmissionDetails({ submissionId, onBack }: SubmissionDe
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.open(project.demoUrl, '_blank')}
+                                onClick={() => {
+                                  if (project.demoUrl) {
+                                    window.open(project.demoUrl, '_blank');
+                                  }
+                                }}
                               >
                                 <ExternalLink className="mr-2 h-3 w-3" />
                                 Demo
