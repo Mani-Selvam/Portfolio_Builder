@@ -1,6 +1,6 @@
 [build]
-  base = "client"
-  command = "npm run build"
+  base = "."
+  command = "cp public/index.html dist/index.html || mkdir -p dist && cp public/index.html dist/index.html"
   publish = "dist"
 
 [build.environment]
