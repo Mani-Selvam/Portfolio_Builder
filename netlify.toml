@@ -1,6 +1,6 @@
 [build]
   base = "."
-  command = "cp dist/index.html || mkdir -p dist && cp dist/index.html"
+  command = "cp public/index.html dist/index.html || mkdir -p dist && cp public/index.html dist/index.html"
   publish = "dist"
 
 [build.environment]
