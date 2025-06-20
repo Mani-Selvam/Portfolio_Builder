@@ -116,8 +116,8 @@
       dashboard.</p>
 
     <div class="buttons">
-      <a href="../client/index.html" class="btn btn-primary">Client Submission Form</a>
-      <a href="../admin/index.html" class="btn btn-secondary">Admin Dashboard</a>
+      <a href="/client" class="btn btn-primary" onclick="showInfo('client')">Client Submission Form</a>
+      <a href="/admin" class="btn btn-secondary" onclick="showInfo('admin')">Admin Dashboard</a>
     </div>
 
     <div class="features">
@@ -148,7 +148,15 @@
     </div>
   </div>
 
-
+  <script>
+    function showInfo(type) {
+      if (type === 'client') {
+        alert('Client Form: Allows users to submit portfolio information including:\n\n• Personal details and contact info\n• Professional title and bio\n• Education and work experience\n• Project details with GitHub/demo links\n• File uploads (resume, photos, screenshots)\n\nNote: Backend deployment required for functionality.');
+      } else {
+        alert('Admin Dashboard: Provides comprehensive management including:\n\n• View all submissions in organized layout\n• Update submission status (pending, in-progress, completed)\n• View detailed submission information\n• Download uploaded files\n• Export data functionality\n• Simple authentication (admin/admin123)\n\nNote: Backend deployment required for functionality.');
+      }
+    }
+  </script>
 </body>
 
 </html>
