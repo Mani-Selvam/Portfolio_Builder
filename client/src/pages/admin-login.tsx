@@ -144,7 +144,7 @@ export default function AdminLogin() {
             
             <div className="mt-6 pt-4 border-t border-gray-200 text-center">
               <p className="text-sm text-gray-600">
-                Default credentials: admin / admin123
+                Hello Admin
               </p>
               <Button
                 variant="ghost"
